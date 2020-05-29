@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>学生文件抽查</title>
+        <!-- <link rel="stylesheet" type="text/css" href="../static/css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="../static/css/bootstrap.css" />
+        <script src="../static/js/bootstrap.min.js"></script>
+        <script src="https://code.jquery.com/jquery.js"></script> -->
+        <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">  
+        <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+        <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="https://cdn.staticfile.org/axios/0.18.0/axios.min.js"></script>
+        <base target="_self">
+    </head>    
+    <body>        
+        <div class="jumbotron text-center" style="margin-bottom:0;background-color: darkcyan;">
+            <h2><font color="#ffffff">学生化学作业抽查</font></h2>
+        </div>
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>                        
+                    </button>
+                    <!-- <a class="navbar-brand" href="#">标题</a> -->
+                </div>
+                <div class="collapse navbar-collapse" id="myNavbar">
+                    <ul class="nav navbar-nav">
+                        <li><a onclick="$('#student_div').show();$('#prize_draw_div').hide();$('#random_div').hide();">学生名单</a></li>
+                        <li><a onclick="$('#student_div').hide();$('#prize_draw_div').hide();$('#random_div').show();">学生作业抽查</a></li>
+                        <li><a onclick="alert('功能未完善，敬请期待');">抽查历史记录</a></li>
+                        <li><a onclick="$('#student_div').hide();$('#random_div').hide();$('#prize_draw_div').show();">学生抽奖</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container" id="student_div">
+            <form class="form-inline" role="form">
+                <div class="form-group col-lg-3">
+                    <label for="name">学生名称</label>
+                    <input type="text" class="form-control" id="student_name" placeholder="输入学生名称" style="width: 170px">
+                </div>
+                <div class="form-group col-lg-3">
+                    <label for="name">学生班级</label>
+                    <select class="form-control" id="student_class" style="width: 170px">
+                        <option></option>
+                        <option>5班</option>
+                        <option>6班</option>
+                        <option>7班</option>
+                        <option>8班</option>
+                    </select>
+                </div>
+                <div class="form-group col-lg-4">
+                    <button type="button" class="btn btn-primary" id="query_student">查询</button>
+                    <button type="button" class="btn btn-danger" id="drop_student">删除</button>
+                </div>
+                <div class="form-group col-lg-1">
+                    <button type="button" id="import_students" class="btn btn-success">导入学生名单</button>
+                </div>
+            </form>
+            <div style="margin-top: 30px">
+                <br><br><hr>
+            </div>
+            <div class="container">
+                <table class="table table-striped text-center">                
+                    <thead>
+                        <tr>
+                            <td>学生</td>
+                            <td>权重</td>
+                            <td>班级</td>
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+                        <!-- <tr>
+                            <td>Tanmay</td>
+                            <td>0.8</td>
+                            <td>5班</td>
+                        </tr>
+                        <tr>
+                            <td>Sachin</td>
+                            <td>0.5</td>
+                            <td>6班</td>
+                        </tr> -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 模态框（Modal） -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title" id="myModalLabel">学生名单导入</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-inline" role="form">
+                            <div class="form-group">
+                                <label class="sr-only" for="name">名称</label>
+                                <input type="text" class="form-control" id="location" placeholder="点击输入框选择文件" onclick="$('#i-file').click();" style="width: 350px">
+                            </div>
+                            <div class="form-group">
+                                <input type="file" id='i-file' accept=".csv" onchange="$('#location').val($('#i-file').val());" style="display: none">
+                            </div>
+                            <button id="import_submit" class="btn btn-default" onclick="uploadFile();">提交</button>
+                        </form>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div>
+        <!-- /.modal -->
+        <div id="random_div" class="container" hidden="true">
+            <form class="form-inline" role="form">
+                <div class="form-group col-lg-3">
+                    <label for="class">学生班级</label>
+                    <select class="form-control" id="random_class" style="width: 170px">
+                        <option></option>
+                        <option>5班</option>
+                        <option>6班</option>
+                        <option>7班</option>
+                        <option>8班</option>
+                    </select>
+                </div>
+                <div class="form-group col-lg-4">
+                    <label for="random_num">抽查人数</label>
+                    <input type="text" class="form-control" id="random_count" style="width: 200px" placeholder="请输入抽查人数">
+                </div>
+                <div class="form-group col-lg-2">
+                    <button type="button" class="btn btn-primary" id="random_student">开始抽查</button>
+                </div>
+                <div class="form-group col-lg-3">
+                    <p id="err_message" class="text-center" style="color: red;font-size: 20px"></p>
+                </div>
+                
+            </form>
+            <div style="margin-top: 30px">
+                <br><br><hr>
+            </div>
+            <div class="container">
+                <table class="table table-striped text-center">                
+                    <thead>
+                        <tr>
+                            <td>学生</td>
+                            <td>权重</td>
+                            <td>班级</td>
+                        </tr>
+                    </thead>
+                    <tbody id="random_body">
+                        <!-- <tr>
+                            <td>Tanmay</td>
+                            <td>0.8</td>
+                            <td>5班</td>
+                        </tr>
+                        <tr>
+                            <td>Sachin</td>
+                            <td>0.5</td>
+                            <td>6班</td>
+                        </tr> -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 抽奖 -->
+        <div id="prize_draw_div" class="container" hidden="true">
+            <form class="form-inline" role="form">
+                <div class="form-group col-lg-3">
+                    <label for="class">学生班级</label>
+                    <select class="form-control" id="prize_draw_class" style="width: 170px">
+                        <option></option>
+                        <option>5班</option>
+                        <option>6班</option>
+                        <option>7班</option>
+                        <option>8班</option>
+                    </select>
+                </div>
+                <div class="form-group col-lg-2">
+                    <label for="random_num">奖品数</label>
+                    <input type="text" class="form-control" id="prize_draw_count" value="16" style="width: 100px">
+                </div>
+                
+                <div class="form-group col-lg-4">
+                    <button type="button" class="btn btn-info" id="prize_draw_start">开始抽奖</button>
+                    <button type="button" class="btn btn-warning" id="prize_draw_stop" disabled>停止抽奖</button>
+                </div>
+
+                <div class="form-group col-lg-3">
+                    <p id="err_message" class="text-center" style="color: red;font-size: 20px"></p>
+                </div>
+                
+            </form>
+            <div style="margin-top: 30px">
+                <hr>
+            </div>
+            <div>
+                <p>参与抽奖的学生有：</p>
+                <h4 id="participate_students"></h4>
+            </div>
+            <div style="margin-top: 30px">
+                <hr>
+            </div>
+            <div>
+                <p>中奖的学生有：</p>
+                <h4 id="get_prize_students"></h4>
+            </div>
+            <div style="margin-top: 30px">
+                <hr>
+            </div>
+            <div style="margin-top: 30px;align-content: center;">
+                <h1 id="choise_student" align="center">???</h1>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            $('#import_students').click(function() {
+                $('#myModal').modal('show');
+            });
+
+            function uploadFile(){                
+                if($('#i-file')[0].files.length==0) { return }
+                var file = new FormData();
+                var file_name = $('#i-file')[0].files[0].name.replace('.csv', '')
+                if (['5班','6班', '7班', '8班'].indexOf(file_name) < 0){
+                    alert('文件名称必须包含 5班,6班,7班,8班,其中一个')
+                    return;
+                }
+                file.append('file', $('#i-file')[0].files[0]);
+                $.ajax({
+                    url: '/upload',
+                    type:'POST',
+                    data: file,
+                    async: false,
+                    processData: false, // 告诉jquery要传输data对象
+                    contentType : false, // 不要设置Content-Type请求头
+                    success: function (data) {
+                        alert(JSON.stringify(data));
+                        $('#myModal').modal('hide');
+                    }
+                });
+            }
+
+            $('#query_student').click(function() {
+                $("#table_body").html('');
+                var jsonData = {'name': $('#student_name').val(), 'class': $('#student_class').val() }
+                
+                axios.post('/query', {
+                    name: $('#student_name').val(),
+                    class: $('#student_class').val()
+                }).then((data) => {
+                    var html_str = '';
+                    for (let stu of data.data) {
+                        let name = stu.name;
+                        let weight = stu.weight;
+                        let class_no = stu.class;
+                        $("#table_body").append('<tr><td>' + name + '</td><td>' + weight + '</td><td> ' + class_no + '</td></tr>');
+                    }
+                }).catch((err) => {
+                    alert('查询异常！！！');
+                });
+            });
+
+            $("#drop_student").click(function() {
+                var class_name = $('#student_class').val();
+                var student_name = $('#student_name').val()
+                if (class_name == null || class_name == ''){
+                    return;
+                }
+                
+                var formData = new FormData();
+                formData.append('class', class_name);
+                formData.append('name', student_name);
+                
+                $.ajax({
+                    url: 'drop_class',
+                    // dataType:'json',
+                    type:'POST',
+                    async: false,
+                    data: formData,
+                    processData: false, // 告诉jquery要传输data对象
+                    contentType : false, // 不要设置Content-Type请求头
+                    success: function (data) {
+                        if (data.status == "200"){
+                            alert('删除成功');
+                        }
+                        $("#table_body").val('');
+                        return
+                    }
+                });
+            });
+
+            $('#random_student').click(function() {
+                $('#err_message').html('');
+                $("#random_body").html('');
+                var random_class = $("#random_class").val();
+                if (random_class == null || random_class == '') {
+                    $('#err_message').html('抽查班级不能为空！');
+                    return;
+                }
+
+                var random_count = $('#random_count').val();
+                if (parseInt(random_count) === NaN || random_count === null || random_count === ''){
+                    $('#err_message').html('抽查数量不是整数，请重新输入');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('class', random_class);
+                formData.append('count', parseInt(random_count));
+
+                $.ajax({
+                    url: 'random',
+                    // dataType:'json',
+                    type:'POST',
+                    async: false,
+                    data: formData,
+                    processData: false, // 告诉jquery要传输data对象
+                    contentType : false, // 不要设置Content-Type请求头
+                    success: function (data) {
+                        var html_str = '';
+                        for (var d in data) {
+                            var name = data[d].name;
+                            var weight = data[d].weight;
+                            var class_no = data[d].class;
+                            var tr_str = '<tr><td>' + name + '</td><td>' + weight + '</td><td> ' + class_no + '</td></tr>';
+                            $("#random_body").append(tr_str);
+                        }
+                        return
+                    }
+                });
+            });
+
+            var prize_draw_pool_student = []
+            // 抽奖
+            $("#prize_draw_class").click(function() {
+                var prize_class = $("#prize_draw_class").val();
+                if (prize_class == null || prize_class == '') {
+                    $('#err_message').html('抽奖班级不能为空！');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('class', prize_class);
+
+                $.ajax({
+                    url: 'prize_draw_students',
+                    // dataType:'json',
+                    type:'POST',
+                    async: false,
+                    data: formData,
+                    processData: false, // 告诉jquery要传输data对象
+                    contentType : false, // 不要设置Content-Type请求头
+                    success: function (data) {    
+                        var name_str = '';
+                        var data_list = data.stu_names;
+                        prize_draw_pool_student = data_list; // 可怜娃们
+                        for (var d in prize_draw_pool_student) {
+                            name_str += data_list[d] + ' 、';
+                        }              
+                        $("#participate_students").text(name_str);
+                        return;
+                    }
+                });
+            });
+
+            // 定时器
+            function show_name(){
+                var arr = prize_draw_pool_student;
+                var random_student = arr[Math.floor((Math.random()*arr.length))];
+                console.log('chose_name:'+random_student);
+                $("#choise_student").text(random_student);
+            }
+
+            var interval;
+
+            $("#prize_draw_start").click(function() {
+                var prize_count = $("#prize_draw_count").val();
+                if (prize_count === "0"){
+                    alert("奖品已抽完，感谢同学们半年来的陪伴和支持，希望在新的一年里，学习顺利，身体健康，提前祝大家新年快乐！！！");
+                    return;
+                }
+                console.log('开始抽奖');
+                document.getElementById("prize_draw_start").disabled=true;
+                document.getElementById("prize_draw_stop").disabled=false;
+                var len = prize_draw_pool_student.length;
+                if (len === 0) {
+                    alert('学生数量为0，请选择班级后点击抽奖');
+                    return;
+                }                
+                interval=self.setInterval("show_name()",100);
+            });
+
+            $("#prize_draw_stop").click(function() {
+                console.log('停止抽奖')
+                document.getElementById("prize_draw_stop").disabled=true; // 按钮自己不能点击
+                document.getElementById("prize_draw_start").disabled=false;
+                clearInterval(interval);
+                var choosed_name =$("#choise_student").text();
+                console.log('幸运学生为：'+choosed_name);
+                if (choosed_name === null || choosed_name === ''){
+                    return;
+                }
+                var prize_count = $("#prize_draw_count").val();
+                var new_count = parseInt(prize_count) - 1;
+                console.log('抽奖总数：' + new_count.toString());
+                $("#prize_draw_count").val(new_count);
+                $("#get_prize_students").append(choosed_name + ' 、');
+                delOne(choosed_name ,prize_draw_pool_student)
+                var name_str_new = '';
+                for (var d in prize_draw_pool_student) {
+                    name_str_new += prize_draw_pool_student[d] + ' 、';
+                }              
+                $("#participate_students").text(name_str_new);
+            });
+
+            function delOne(str, arr){
+                var index = arr.indexOf(str);
+                arr.splice(index, 1);
+            }
+        </script>
+        <!-- <div class="jumbotron text-center" style="bottom: 0px;margin-bottom:0px;padding-top:5px;padding-bottom:5px;">
+            <p>看看倒霉的都是谁</p>
+        </div> -->
+
+    </body>
+</html>
