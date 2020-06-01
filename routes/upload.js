@@ -3,6 +3,7 @@ var multiparty = require('multiparty');
 var fs = require('fs');
 var os = require('os');
 var router = express.Router();
+var Student = require('../model/Student');
 
 router.post('/', function(req, res, next) {
     try{
@@ -44,18 +45,30 @@ router.post('/', function(req, res, next) {
                             console.log('empty line >>>>>>>>>>>>');
                             continue;
                         }
-                        console.log(stu);
+                        // console.log(stu);
                         if(stu.indexOf(',') < 0) continue;
-                        let name = stu.split(',')[0];
-                        let weight = stu.split(',')[1];
-                        student.name = name;
-                        student.weight = weight;
-                        student.class = '5班';
-                        stuArr.push(student);
+                        var tempStu = new Student();
+                        tempStu.name = stu.split(',')[0];
+                        tempStu.weight = Number.parseFloat(stu.split(',')[1]);
+                        tempStu.class = fileName;
+                        // 先查询再插入
+                        const stuFind = queryStu(tempStu.name);
+                        console.log('fild stuFind', stuFind);
+                        
+                        // tempStu.save((err) => {
+                        //     if (err){
+                        //         console.log('save student err', err);
+                        //     } else {
+                        //         console.log('save student success:');
+                        //     }
+                        // });
                     }
-                    console.log('read over!!!');
-                    console.log(stuArr);
+                    new Promise((resolve, reject) => {
+                        resolve('read over!!!');
+                    });
                 });
+            }).then((msg) => {
+                console.log(msg);
             }).catch((rst) => {
                 console.log(rst);
                 res.send({code: 500});
@@ -70,5 +83,11 @@ router.post('/', function(req, res, next) {
         res.send({'code': '500'});
     }
   });
-  
+
   module.exports = router;
+
+ async function queryStu(name){
+    var stu = await Student.findOne({ name: name});
+    console.log('find stuent:', stu);
+    return stu;
+ } 
