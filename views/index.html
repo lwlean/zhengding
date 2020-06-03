@@ -126,7 +126,7 @@
                 </div>
                 <div class="form-group col-lg-4">
                     <label for="random_num">抽查人数</label>
-                    <input type="text" class="form-control" id="random_count" style="width: 200px" placeholder="请输入抽查人数">
+                    <input type="text" class="form-control" id="random_count" value="20" style="width: 200px" placeholder="请输入抽查人数">
                 </div>
                 <div class="form-group col-lg-2">
                     <button type="button" class="btn btn-primary" id="random_student">开始抽查</button>
@@ -336,33 +336,48 @@
             // 抽奖
             $("#prize_draw_class").click(function() {
                 var prize_class = $("#prize_draw_class").val();
-                if (prize_class == null || prize_class == '') {
+                if (prize_class === null || prize_class === '') {
                     $('#err_message').html('抽奖班级不能为空！');
                     return;
                 }
-
-                var formData = new FormData();
-                formData.append('class', prize_class);
-
-                $.ajax({
-                    url: 'prize_draw_students',
-                    // dataType:'json',
-                    type:'POST',
-                    async: false,
-                    data: formData,
-                    processData: false, // 告诉jquery要传输data对象
-                    contentType : false, // 不要设置Content-Type请求头
-                    success: function (data) {    
-                        var name_str = '';
-                        var data_list = data.stu_names;
-                        prize_draw_pool_student = data_list; // 可怜娃们
-                        for (var d in prize_draw_pool_student) {
-                            name_str += data_list[d] + ' 、';
-                        }              
-                        $("#participate_students").text(name_str);
-                        return;
+                
+                axios.post('/query/studentNames', {
+                    class: prize_class
+                }).then((data) => {                    
+                    var name_str = '';                  
+                    prize_draw_pool_student = data.data.stuNames; // 可怜娃们
+                    for (var d in prize_draw_pool_student) {
+                        name_str += prize_draw_pool_student[d] + ' 、';
                     }
+                    $("#participate_students").text(name_str);
+                    return;
+                }).catch((err) => {
+                    alert('查询异常：' + err);
                 });
+
+                // >>>>>>>>>>>>>>>>>
+                // var formData = new FormData();
+                // formData.append('class', prize_class);
+
+                // $.ajax({
+                //     url: 'prize_draw_students',
+                //     // dataType:'json',
+                //     type:'POST',
+                //     async: false,
+                //     data: formData,
+                //     processData: false, // 告诉jquery要传输data对象
+                //     contentType : false, // 不要设置Content-Type请求头
+                //     success: function (data) {    
+                //         var name_str = '';
+                //         var data_list = data.stu_names;
+                //         prize_draw_pool_student = data_list; // 可怜娃们
+                //         for (var d in prize_draw_pool_student) {
+                //             name_str += data_list[d] + ' 、';
+                //         }              
+                //         $("#participate_students").text(name_str);
+                //         return;
+                //     }
+                // });
             });
 
             // 定时器

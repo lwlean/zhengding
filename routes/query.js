@@ -18,4 +18,29 @@ router.post('/', function(req, res, next) {
     }
 });
 
+router.post('/studentNames', function(req, res, next) {
+    try {
+        const queryClass = req.body.class;
+        if (queryClass === null || queryClass === '') {
+            res.send({});
+            return;
+        }
+        console.log(queryClass);
+        Student.find({class:{$regex: queryClass}}).then((docs) => {
+            // console.log(JSON.stringify(docs));
+            var rstStuNames = [];
+            for (let stu of docs) {
+                rstStuNames.push(stu.name);
+            }
+            console.log(rstStuNames.toString());
+            res.send({stuNames: rstStuNames});
+        }).catch(() => {
+            console.log('query student name by class catch error');
+            res.send({});
+        })
+    } catch (e){
+        console.log('query student name by class error:%s', e);
+    }
+});
+
 module.exports = router;

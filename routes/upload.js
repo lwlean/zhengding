@@ -49,7 +49,7 @@ const ReadUploadFile = (newPath, fileName, res) => {
                     // let tempStu = new Student();
                     let name = stu.split(',')[0];
                     let weight = Number.parseFloat(stu.split(',')[1]);
-                    let stu_class = fileName;
+                    let stu_class = fileName.split('.')[0];
                     
                     Student.findOneAndRemove({name: name}).then(() => {
                         console.log('remove successs');
