@@ -12,7 +12,7 @@ router.post('/', function(req, res, next) {
             var docs_str = JSON.stringify(docs);           
             console.log(docs_str);
             res.send(docs);
-        })
+        })  
     } catch(e) {
         console.log('error..' + e);
     }
