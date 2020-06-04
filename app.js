@@ -47,12 +47,14 @@ app.use(function(err, req, res, next) {
   res.render('404.html');
 });
 
-mongoose.connect('mongodb://localhost:27017/zhengding',{
+mongoose.connect('mongodb://127.0.0.1:27017/zhengding',{
+  user: 'lwlean',
+  pass: '123456',
   useNewUrlParser: true,
   useUnifiedTopology: true
 }, (err) => {
   if(err){
-    console.log('mongodb connect error');
+    console.log('mongodb connect error:'+err);
     return;
   }else{
     console.log('mongodb connect success');
